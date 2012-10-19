@@ -34,13 +34,31 @@ First I will define a function, named foreach\_pixel\_exec, that executes a func
 #include "util.h"
 #include <math.h>
 
-ImagePanel foreach_pixel_exec(empty_img, ray_func){
-  ImagePanel resultImg;
-  for (auto pixel: empty_img) { //foreach pixel in empty_img
-    ray_func(pixel);
+ImagePanel foreach_pixel_exec(ImagePanel empty_img, std::function<int(int)> ray_func){
+  for (auto& pixel: empty_img) { //foreach pixel in empty_img
+    //std::cout<<"before: "<<pixel<<std::endl;
+    pixel = ray_func(pixel);
+    //std::cout<<"after: "<<pixel<<std::endl;
   }
-  return resultImg;
+  return empty_img;
 }
+
+ImagePanel init_img_panel(ImagePanel img) {
+  for (auto& pixel: img) { //foreach pixel in empty_img
+    pixel = 0;
+  }
+  return img;
+}
+
+//helpers
+void print_img_panel(ImagePanel img) {
+  std::cout<<std::endl;
+  for (auto& pixel : img) {
+    std::cout<<pixel<<", ";
+  }
+  std::cout<<std::endl<<"Array size: "<<img.size()<<std::endl;
+}
+
 @
 \end{verbatim}
 
@@ -55,50 +73,41 @@ Here is an header file for typedefs and function declarations.
 #define IMG_Y 240
 #define IMG_LEN ( IMG_X * IMG_Y )
 
-#include <tr1/array>
+#include <array>
 #include <functional>
-typedef std::tr1::array<float, IMG_LEN> ImagePanel;
-typedef std::tr1::array<int, 3> Ray;//assuming there are 3 parameters for ray equation
+#include <iostream>
+typedef std::array<int, IMG_LEN> ImagePanel;
+typedef std::array<float, 3> Ray;//assuming there are 3 parameters for ray equation
 
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int (Ray)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(int)>);
+ImagePanel init_img_panel(ImagePanel);
+
+//helpers
+void print_img_panel(ImagePanel);
 #endif
 @
 \end{verbatim}
 
-
-
 \begin{verbatim}
-<<src/q1_main.cpp>>=
+<<src/main.cpp>>=
 #include <iostream>
 #include <typeinfo>//debugging only
 #include "util.h"
 
 int main () {
-  Vecotr V1;
-  decltype(V1) V2;// V2 is of same type of V1
-
-  V1 = {0,0,1000};
-  V2 = {0,1,1};
-
-  //call our function to get the uvn. auto will be replaced by the actual time by preprocessor.
-  auto uvn = get_uvn(V1, V2);
-
-  for (auto vecotr : uvn) {//for each Vecotr in uvn
-    for (auto num : vecotr) {//for each number in Vecotr
-      std::cout<<num<<',';
-    }
-    std::cout<<std::endl;
-  }
-
+  ImagePanel resultImg;
+  resultImg = init_img_panel(resultImg);
+  resultImg = foreach_pixel_exec(resultImg, [](int x){return x+2;});
+  print_img_panel(resultImg);
   return 0;
 }
 @
 \end{verbatim}
 
-Furthermore, this is the command to link these files. Notice that I am using -std=c++11 flag to enable c++ 11 features. The output binary executable is bin/q1
+Furthermore, this is the command to link these files. Notice that I am using -std=c++11 flag to enable c++ 11 features. The output binary executable is bin/run
 \begin{verbatim}
-<<compile_q1.sh>>=
-clang++ -std=c++11 -o bin/q1 src/q1_main.cpp src/util.cpp
+<<compile.sh>>=
+clang++ -std=c++11 -stdlib=libc++ -o bin/run src/main.cpp src/util.cpp
 @
 \end{verbatim}
 
