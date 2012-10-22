@@ -27,22 +27,22 @@
 
 \clearpage
 
-\section{The foreach pixel function}
-First I will define a function, named foreach\_pixel\_exec, that executes a function on each pixel of a 2D image panel. 
+\section{function implementation}
 \begin{verbatim}
 <<src/util.cpp>>=
 #include "util.h"
 #include <math.h>
 
-ImagePanel foreach_pixel_exec(ImagePanel empty_img, std::function<int(int)> ray_func){
+ImagePanel foreach_pixel_exec(ImagePanel empty_img, std::function<int(float)> ray_func){
   for (auto& pixel: empty_img) { //foreach pixel in empty_img
     //std::cout<<"before: "<<pixel<<std::endl;
-    pixel = ray_func(pixel);
+    pixel = ray_func(1.0);
     //std::cout<<"after: "<<pixel<<std::endl;
   }
   return empty_img;
 }
 
+//initialize img panel to all 0s
 ImagePanel init_img_panel(ImagePanel img) {
   for (auto& pixel: img) { //foreach pixel in empty_img
     pixel = 0;
@@ -50,7 +50,40 @@ ImagePanel init_img_panel(ImagePanel img) {
   return img;
 }
 
+//translate ray equation to an 0~255 shading value
+int ray_tracing(Ray ray) {
+  Point p = ray_objects_intersection(ray);
+  return ray[0]+ray[1]+ray[2]+ray[3];
+}
+
+Point ray_objects_intersection(Ray ray) {
+
+}
+
 //helpers
+
+//Translate 2D array index of row column to 1D index.
+//Notice that x, or column index, starts with 0. 
+//If return value is -1 then there is an out-of-bounce error.
+int to_1d(int x, int y) {
+  if (x >= IMG_X || x < 0)
+    return -1;
+  if (y >= IMG_Y || y < 0)
+    return -1;
+  return (IMG_Y*y + x);
+}
+
+//Translate 1d array index to 2d
+std::array<int, 2> to_2d(int x) {
+  if (x>=(IMG_X*IMG_Y) || x < 0) {
+    return {-1,-1};
+  }
+  int y_ = x / IMG_X; 
+  int x_ = x % IMG_X;
+  return {x_, y_};
+}
+
+//prints the img panel
 void print_img_panel(ImagePanel img) {
   std::cout<<std::endl;
   for (auto& pixel : img) {
@@ -62,6 +95,7 @@ void print_img_panel(ImagePanel img) {
 @
 \end{verbatim}
 
+\section{header}
 Here is an header file for typedefs and function declarations.
 \begin{verbatim}
 <<src/util.h>>=
@@ -69,25 +103,31 @@ Here is an header file for typedefs and function declarations.
 #define UTIL_H
 
 //define global vars
-#define IMG_X 320
-#define IMG_Y 240
+#define IMG_X 512
+#define IMG_Y 512
 #define IMG_LEN ( IMG_X * IMG_Y )
 
 #include <array>
 #include <functional>
 #include <iostream>
 typedef std::array<int, IMG_LEN> ImagePanel;
-typedef std::array<float, 3> Ray;//assuming there are 3 parameters for ray equation
+typedef std::array<float, 3> Point;
+typedef std::array<float, 4> Ray;//assuming there are 3 parameters for ray equation
 
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(int)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(float)>);
 ImagePanel init_img_panel(ImagePanel);
+int ray_tracing(Ray);
+Point ray_objects_intersection(Ray);
 
 //helpers
+int to_1d(int, int);
+std::array<int, 2> to_2d(int);
 void print_img_panel(ImagePanel);
 #endif
 @
 \end{verbatim}
 
+\section{main funciton}
 \begin{verbatim}
 <<src/main.cpp>>=
 #include <iostream>
@@ -97,13 +137,28 @@ void print_img_panel(ImagePanel);
 int main () {
   ImagePanel resultImg;
   resultImg = init_img_panel(resultImg);
-  resultImg = foreach_pixel_exec(resultImg, [](int x){return x+2;});
+  resultImg = foreach_pixel_exec(resultImg, [](float x){return ray_tracing({x,x,x,x});});
   print_img_panel(resultImg);
+
+  //unit tests
+  std::cout<<to_1d(0, 1)<<std::endl;
+  std::cout<<to_2d(512)[0]<<std::endl;
+  std::cout<<to_2d(512)[1]<<std::endl;
+  std::cout<<to_1d(1, 1)<<std::endl;
+  std::cout<<to_2d(513)[0]<<std::endl;
+  std::cout<<to_2d(513)[1]<<std::endl;
+  std::cout<<to_1d(511, 1)<<std::endl;
+  std::cout<<to_2d(1023)[0]<<std::endl;
+  std::cout<<to_2d(1023)[1]<<std::endl;
+  std::cout<<to_1d(512, 1)<<std::endl;
+  std::cout<<to_2d(512*512)[0]<<std::endl;
+  std::cout<<to_2d(512*512)[1]<<std::endl;
   return 0;
 }
 @
 \end{verbatim}
 
+\section{compile script}
 Furthermore, this is the command to link these files. Notice that I am using -std=c++11 flag to enable c++ 11 features. The output binary executable is bin/run
 \begin{verbatim}
 <<compile.sh>>=
