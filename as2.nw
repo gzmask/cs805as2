@@ -56,11 +56,12 @@ int ray_tracing(Ray ray) {
   return ray[0]+ray[1]+ray[2]+ray[3];
 }
 
+//calculate the ray object intersection point
 Point ray_objects_intersection(Ray ray) {
-
+  return {1,2,3};
 }
 
-//helpers
+//==========helpers==========
 
 //Translate 2D array index of row column to 1D index.
 //Notice that x, or column index, starts with 0. 
