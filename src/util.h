@@ -11,12 +11,17 @@
 #include <iostream>
 typedef std::array<int, IMG_LEN> ImagePanel;
 typedef std::array<float, 3> Point;
-typedef std::array<float, 4> Ray;//assuming there are 3 parameters for ray equation
+typedef std::array<float, 3> Vector;
+typedef struct {
+	Point intersection;	/* intersection point */
+	Vector normal;	/* intersection polygon normal vector */
+	float kd;	/* diffuse reflection coefficient of the surface */
+} Intersection;
 
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(float)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Vector)>);
 ImagePanel init_img_panel(ImagePanel);
-int ray_tracing(Ray);
-Point ray_objects_intersection(Ray);
+int ray_tracing(Vector);
+Intersection ray_objects_intersection(Vector);
 
 //helpers
 int to_1d(int, int);

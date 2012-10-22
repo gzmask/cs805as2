@@ -1,13 +1,14 @@
 #include "util.h"
 #include <math.h>
 
-ImagePanel foreach_pixel_exec(ImagePanel empty_img, std::function<int(float)> ray_func){
-  for (auto& pixel: empty_img) { //foreach pixel in empty_img
-    //std::cout<<"before: "<<pixel<<std::endl;
-    pixel = ray_func(1.0);
-    //std::cout<<"after: "<<pixel<<std::endl;
+ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Vector)> ray_func){
+  int i = 0;
+  for (auto& pixel: img) { //foreach pixel in empty_img
+    pixel = ray_func({1.0,1.0,1.0});
+    i++;
+    std::cout<<i<<std::endl;
   }
-  return empty_img;
+  return img;
 }
 
 //initialize img panel to all 0s
@@ -19,14 +20,16 @@ ImagePanel init_img_panel(ImagePanel img) {
 }
 
 //translate ray equation to an 0~255 shading value
-int ray_tracing(Ray ray) {
-  Point p = ray_objects_intersection(ray);
+int ray_tracing(Vector ray) {
+  Intersection p = ray_objects_intersection(ray);
   return ray[0]+ray[1]+ray[2]+ray[3];
 }
 
 //calculate the ray object intersection point
-Point ray_objects_intersection(Ray ray) {
-  return {1,2,3};
+Intersection ray_objects_intersection(Vector ray) {
+  return {1,2,3,
+          4,5,6,
+          1.0};
 }
 
 //==========helpers==========

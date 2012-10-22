@@ -33,13 +33,13 @@
 #include "util.h"
 #include <math.h>
 
-ImagePanel foreach_pixel_exec(ImagePanel empty_img, std::function<int(float)> ray_func){
-  for (auto& pixel: empty_img) { //foreach pixel in empty_img
-    //std::cout<<"before: "<<pixel<<std::endl;
-    pixel = ray_func(1.0);
-    //std::cout<<"after: "<<pixel<<std::endl;
+ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Vector)> ray_func){
+  int i = 0;
+  for (auto& pixel: img) { //foreach pixel in empty_img
+    pixel = ray_func({1.0,1.0,1.0});
+    i++;
   }
-  return empty_img;
+  return img;
 }
 
 //initialize img panel to all 0s
@@ -51,14 +51,16 @@ ImagePanel init_img_panel(ImagePanel img) {
 }
 
 //translate ray equation to an 0~255 shading value
-int ray_tracing(Ray ray) {
-  Point p = ray_objects_intersection(ray);
+int ray_tracing(Vector ray) {
+  Intersection p = ray_objects_intersection(ray);
   return ray[0]+ray[1]+ray[2]+ray[3];
 }
 
 //calculate the ray object intersection point
-Point ray_objects_intersection(Ray ray) {
-  return {1,2,3};
+Intersection ray_objects_intersection(Vector ray) {
+  return {1,2,3,
+          4,5,6,
+          1.0};
 }
 
 //==========helpers==========
@@ -113,12 +115,17 @@ Here is an header file for typedefs and function declarations.
 #include <iostream>
 typedef std::array<int, IMG_LEN> ImagePanel;
 typedef std::array<float, 3> Point;
-typedef std::array<float, 4> Ray;//assuming there are 3 parameters for ray equation
+typedef std::array<float, 3> Vector;
+typedef struct {
+	Point intersection;	/* intersection point */
+	Vector normal;	/* intersection polygon normal vector */
+	float kd;	/* diffuse reflection coefficient of the surface */
+} Intersection;
 
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(float)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Vector)>);
 ImagePanel init_img_panel(ImagePanel);
-int ray_tracing(Ray);
-Point ray_objects_intersection(Ray);
+int ray_tracing(Vector);
+Intersection ray_objects_intersection(Vector);
 
 //helpers
 int to_1d(int, int);
@@ -138,7 +145,7 @@ void print_img_panel(ImagePanel);
 int main () {
   ImagePanel resultImg;
   resultImg = init_img_panel(resultImg);
-  resultImg = foreach_pixel_exec(resultImg, [](float x){return ray_tracing({x,x,x,x});});
+  resultImg = foreach_pixel_exec(resultImg, [](Vector x){return ray_tracing(x);});
   print_img_panel(resultImg);
 
   //unit tests
