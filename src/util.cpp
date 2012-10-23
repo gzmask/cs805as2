@@ -1,5 +1,4 @@
 #include "util.h"
-#include "mymodel.h"
 #include <math.h>
 
 //pixel iterator for img panel.
