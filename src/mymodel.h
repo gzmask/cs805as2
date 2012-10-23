@@ -1,7 +1,7 @@
 /* IMPORTANT: After you download this file, you should rename it
 	to "mymodel.h"
 */
-
+#include <array>
 
 /* Definition of the structure for Sphere */
 typedef struct {
@@ -60,17 +60,18 @@ float Ip = 200.0;	/* intensity of the point light source */
 
 /* === transformation matrices (to be constructed) === */
 
+typedef std::array<float, 4> Row;
+typedef std::array<Row, 4> Matrix;
 /* Transformation from the world to the camera coordinates */
-float Mwc[4][4] =
+Matrix Mwc =
 	{1.0, 0.0, 0.0, 0.0,
 	 0.0, 1.0, 0.0, 0.0,
 	 0.0, 0.0, 1.0, 0.0,
 	 0.0, 0.0, 0.0, 1.0};
 
 /* Transformation from the camera to the world coordinates */
-float Mcw[4][4] =
+Matrix Mcw =
 	{1.0, 0.0, 0.0, 0.0,
 	 0.0, 1.0, 0.0, 0.0,
 	 0.0, 0.0, 1.0, 0.0,
 	 0.0, 0.0, 0.0, 1.0};
-
