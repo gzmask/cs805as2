@@ -6,7 +6,6 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Vector)> ray_fun
   for (auto& pixel: img) { //foreach pixel in empty_img
     pixel = ray_func({1.0,1.0,1.0});
     i++;
-    std::cout<<i<<std::endl;
   }
   return img;
 }
@@ -22,7 +21,7 @@ ImagePanel init_img_panel(ImagePanel img) {
 //translate ray equation to an 0~255 shading value
 int ray_tracing(Vector ray) {
   Intersection p = ray_objects_intersection(ray);
-  return ray[0]+ray[1]+ray[2]+ray[3];
+  return shading(p); 
 }
 
 //calculate the ray object intersection point
@@ -30,6 +29,11 @@ Intersection ray_objects_intersection(Vector ray) {
   return {1,2,3,
           4,5,6,
           1.0};
+}
+
+//calculate shading value from 0~255 accordingly to intersection info
+int shading(Intersection p) {
+  return 1;
 }
 
 //==========helpers==========

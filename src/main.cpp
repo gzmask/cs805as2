@@ -5,7 +5,8 @@
 int main () {
   ImagePanel resultImg;
   resultImg = init_img_panel(resultImg);
-  resultImg = foreach_pixel_exec(resultImg, [](Vector x){return ray_tracing(x);});
+  //resultImg = foreach_pixel_exec(resultImg, [](Vector x){return ray_tracing(x);});
+  resultImg = foreach_pixel_exec(resultImg, ray_tracing);
   print_img_panel(resultImg);
 
   //unit tests

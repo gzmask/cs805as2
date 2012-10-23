@@ -53,7 +53,7 @@ ImagePanel init_img_panel(ImagePanel img) {
 //translate ray equation to an 0~255 shading value
 int ray_tracing(Vector ray) {
   Intersection p = ray_objects_intersection(ray);
-  return ray[0]+ray[1]+ray[2]+ray[3];
+  return shading(p); 
 }
 
 //calculate the ray object intersection point
@@ -61,6 +61,11 @@ Intersection ray_objects_intersection(Vector ray) {
   return {1,2,3,
           4,5,6,
           1.0};
+}
+
+//calculate shading value from 0~255 accordingly to intersection info
+int shading(Intersection p) {
+  return 1;
 }
 
 //==========helpers==========
@@ -126,6 +131,7 @@ ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Vector)>);
 ImagePanel init_img_panel(ImagePanel);
 int ray_tracing(Vector);
 Intersection ray_objects_intersection(Vector);
+int shading(Intersection);
 
 //helpers
 int to_1d(int, int);
@@ -145,7 +151,7 @@ void print_img_panel(ImagePanel);
 int main () {
   ImagePanel resultImg;
   resultImg = init_img_panel(resultImg);
-  resultImg = foreach_pixel_exec(resultImg, [](Vector x){return ray_tracing(x);});
+  resultImg = foreach_pixel_exec(resultImg, ray_tracing);
   print_img_panel(resultImg);
 
   //unit tests

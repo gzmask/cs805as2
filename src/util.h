@@ -22,6 +22,7 @@ ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Vector)>);
 ImagePanel init_img_panel(ImagePanel);
 int ray_tracing(Vector);
 Intersection ray_objects_intersection(Vector);
+int shading(Intersection);
 
 //helpers
 int to_1d(int, int);
