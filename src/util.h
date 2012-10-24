@@ -75,4 +75,17 @@ Vector normalize(Vector);
 
 //global vars
 extern Matrix Mwc;
+extern Matrix Mcw;
+extern Matrix Mwl;
+extern Matrix Mlw;
+extern float xmin;
+extern float ymin;
+extern float xmax;
+extern float ymax;
+extern Point VRP;
+extern Vector VPN;
+extern Vector VUP;
+extern float focal;
+extern Point LRP;
+extern float Ip;
 #endif

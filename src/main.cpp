@@ -41,6 +41,10 @@ float Ip = 200.0;	/* intensity of the point light source */
 Matrix Mwc = get_M(VRP, VPN, VUP);
 /* Transformation from the camera to the world coordinates */
 Matrix Mcw = get_Mi(VRP, VPN, VUP);
+/* Transformation from the world to light coordinates */
+Matrix Mwl = get_T(LRP);
+/* Transformation from the light to the world coordinates */
+Matrix Mlw = get_Ti(LRP);
 
 int main () {
   ImagePanel img;

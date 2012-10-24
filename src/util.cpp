@@ -16,11 +16,38 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
   return img;
 }
 
+//ray constructor
 Ray ray_construction(int x, int y) {
-  //transform VRP to world coordinate
-  pmatrix("mwc:", Mwc);
-    return {-1,-1,-1,
-            -1,-1,-1};
+
+  //calculate x unit
+  auto x_sum = xmin - xmax;
+  auto x_unit = x_sum / IMG_X;
+
+  //calculate y unit
+  auto y_sum = ymax - ymin;
+  auto y_unit = y_sum / IMG_Y;
+
+  //calculate the point on img panel with world coordinate
+  auto x_ = xmax + x_unit * x;
+  auto y_ = ymax - y_unit * y;
+
+  //get vector v0. it is trival that VRP is p0
+  Point p1_ = {x_, y_, focal};
+  Point p1 = mul(Mcw, p1_);
+  Point v0 = {p1[0] - VRP[0],
+              p1[1] - VRP[1], 
+              p1[2] - VRP[2]};
+
+  if ((x==0 && y==0) || (x==511 && y==511)) {
+    std::cout<<"img: x:"<<x<<", y:"<<y<<std::endl;
+    std::cout<<"p0: x:"<<VRP[0]<<", y:"<<VRP[1]<<", z:"<<VRP[2]<<std::endl;
+    //std::cout<<"p1_: x:"<<p1_[0]<<", y:"<<p1_[1]<<", z:"<<p1_[2]<<std::endl;
+    std::cout<<"p1: x:"<<p1[0]<<", y:"<<p1[1]<<", z:"<<p1[2]<<std::endl;
+    std::cout<<"v0: x:"<<v0[0]<<", y:"<<v0[1]<<", z:"<<v0[2]<<std::endl;
+  }
+
+  return { VRP[0], VRP[1], VRP[2],
+           v0[0], v0[1], v0[2]};
 }
 
 //initialize img panel to all 0s
@@ -135,10 +162,12 @@ Matrix get_Ri(Point vrp, Vector vpn, Vector vup) {
   return {r1,r2,r3,r4};
 }
 
+//world to camera
 Matrix get_M(Point vrp, Vector vpn, Vector vup) {
   return mul(get_R(vrp, vpn, vup), get_T(vrp));
 }
 
+//camera to world
 Matrix get_Mi(Point vrp, Vector vpn, Vector vup) {
   return mul(get_Ti(vrp), get_Ri(vrp, vpn, vup));
 }
