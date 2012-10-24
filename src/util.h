@@ -12,11 +12,13 @@
 #include <array>
 #include <functional>
 #include <iostream>
+#include <iomanip>
 
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
 typedef std::array<float, 3> Point;
 typedef std::array<float, 3> Vector;
+typedef std::array<Vector, 3> UVN;
 typedef struct {
 	Point intersection;	/* intersection point */
 	Vector normal;	/* intersection polygon normal vector */
@@ -28,13 +30,11 @@ typedef struct {
 } Ray;
 typedef std::array<float, 4> Row;
 typedef std::array<Row, 4> Matrix;
-/* Definition of the structure for Sphere */
 typedef struct {
 	float x, y, z;	/* center of the circle */
 	float radius;	/* radius of the circle */
 	float kd;	/* diffuse reflection coefficient */
 } SPHERE;
-/* Definition of Polygon with 4 edges */
 typedef struct {
 	float v[4][3];	/* list of vertices */
 	float N[3];	/* normal of the polygon */
@@ -54,8 +54,25 @@ Ray ray_construction(int, int);
 //helper functions
 Point mul(Point, Matrix);
 Point mul(Matrix, Point);
+Matrix mul(Matrix, Matrix);
+Row mul(Row, Matrix);
+Row mul(Matrix, Row);
 int to_1d(int, int);
 std::array<int, 2> to_2d(int);
 void print_img_panel(ImagePanel);
+void pmatrix(std::string, Matrix);
 bool closer(Point, Point, Point);
+UVN get_uvn(Vector V1, Vector V2);
+Matrix get_T(Point);
+Matrix get_Ti(Point);
+Matrix get_R(Point, Vector, Vector);
+Matrix get_Ri(Point, Vector, Vector);
+Matrix get_M(Point, Vector, Vector);
+Matrix get_Mi(Point, Vector, Vector);
+float get_length(Vector);
+Vector cross_product(Vector, Vector);
+Vector normalize(Vector);
+
+//global vars
+extern Matrix Mwc;
 #endif

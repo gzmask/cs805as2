@@ -48,23 +48,12 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
   return img;
 }
 
+//ray constructor
 Ray ray_construction(int x, int y) {
   //transform VRP to world coordinate
-    return {-1,-1,-1,
+    return { VRP[0], VRP[1], VRP[2],
             -1,-1,-1};
 }
-
-Point mul(Matrix m, Point x) {
-  return mul(x, m);
-}
-
-Point mul(Point x, Matrix m) {
-  return {x[0]*m[0][0]+x[1]*m[0][1]+x[2]*m[0][2]+m[0][3],
-          x[0]*m[1][0]+x[1]*m[1][1]+x[2]*m[1][2]+m[1][3],
-          x[0]*m[2][0]+x[1]*m[2][1]+x[2]*m[2][2]+m[2][3]};
-}
-
-
 
 //initialize img panel to all 0s
 ImagePanel init_img_panel(ImagePanel img) {
@@ -122,13 +111,121 @@ int shading(Intersection p) {
 
 //==========helpers==========
 
+//prints a matrix
+void pmatrix(std::string str, Matrix m) {
+  std::cout<<str<<std::endl;
+  for (auto row : m) {
+    for (auto num : row) {
+      std::cout<<std::setw (10);
+      std::cout<<num;
+    }
+    std::cout<<std::endl;
+  }
+  std::cout<<std::endl;
+}
+
+//get transformation matrix
+Matrix get_T(Point vrp) {
+  Row r1 = {1, 0, 0, -vrp[0]};
+  Row r2 = {0, 1, 0, -vrp[1]};
+  Row r3 = {0, 0, 1, -vrp[2]};
+  Row r4 = {0, 0, 0, 1};
+  return {r1, r2, r3, r4};
+}
+
+//get inverse transformation matrix
+Matrix get_Ti(Point vrp) {
+  Row r1 = {1, 0, 0, vrp[0]};
+  Row r2 = {0, 1, 0, vrp[1]};
+  Row r3 = {0, 0, 1, vrp[2]};
+  Row r4 = {0, 0, 0, 1};
+  return {r1, r2, r3, r4};
+}
+
+//get rotation matrix
+Matrix get_R(Point vrp, Vector vpn, Vector vup) {
+  //first get the translation matrix from world to view
+  auto mt = get_T(vrp);
+
+  //we can see vpn_ and vup_ as vectors. such that we can apply them to get_uvn function from q2
+  auto uvn = get_uvn(vup, vpn);
+  //finally contruct our roation matrix using method 2 on class notes
+  Row r1 = { uvn[0][0],uvn[0][1],uvn[0][2],0 };
+  Row r2 = { uvn[1][0],uvn[1][1],uvn[1][2],0 };
+  Row r3 = { uvn[2][0],uvn[2][1],uvn[2][2],0 };
+  Row r4 = { 0, 0, 0, 1 };
+  return { r1, r2, r3, r4 };
+}
+
+//get inverse rotation matrix
+Matrix get_Ri(Point vrp, Vector vpn, Vector vup) {
+  Matrix m = get_R(vrp, vpn, vup);
+  Row r1 = { m[0][0], m[1][0], m[2][0], m[3][0] };
+  Row r2 = { m[0][1], m[1][1], m[2][1], m[3][1] };
+  Row r3 = { m[0][2], m[1][2], m[2][2], m[3][2] };
+  Row r4 = { m[0][3], m[1][3], m[2][3], m[3][3] };
+  return {r1,r2,r3,r4};
+}
+
+Matrix get_M(Point vrp, Vector vpn, Vector vup) {
+  return mul(get_R(vrp, vpn, vup), get_T(vrp));
+}
+
+Matrix get_Mi(Point vrp, Vector vpn, Vector vup) {
+  return mul(get_Ti(vrp), get_Ri(vrp, vpn, vup));
+}
+
+
+//matrix multiplication
+Point mul(Matrix m, Point x) {
+  return mul(x, m);
+}
+
+Point mul(Point x, Matrix m) {
+  return {x[0]*m[0][0]+x[1]*m[0][1]+x[2]*m[0][2]+m[0][3],
+          x[0]*m[1][0]+x[1]*m[1][1]+x[2]*m[1][2]+m[1][3],
+          x[0]*m[2][0]+x[1]*m[2][1]+x[2]*m[2][2]+m[2][3]};
+}
+
+Matrix mul(Matrix m, Matrix n) {
+  Row r1 = {m[0][0]*n[0][0]+m[0][1]*n[1][0]+m[0][2]*n[2][0]+m[0][3]*n[3][0],
+            m[0][0]*n[0][1]+m[0][1]*n[1][1]+m[0][2]*n[2][1]+m[0][3]*n[3][1],
+            m[0][0]*n[0][2]+m[0][1]*n[1][2]+m[0][2]*n[2][2]+m[0][3]*n[3][2],
+            m[0][0]*n[0][3]+m[0][1]*n[1][3]+m[0][2]*n[2][3]+m[0][3]*n[3][3]};
+  Row r2 = {m[1][0]*n[0][0]+m[1][1]*n[1][0]+m[1][2]*n[2][0]+m[1][3]*n[3][0],
+            m[1][0]*n[0][1]+m[1][1]*n[1][1]+m[1][2]*n[2][1]+m[1][3]*n[3][1],
+            m[1][0]*n[0][2]+m[1][1]*n[1][2]+m[1][2]*n[2][2]+m[1][3]*n[3][2],
+            m[1][0]*n[0][3]+m[1][1]*n[1][3]+m[1][2]*n[2][3]+m[1][3]*n[3][3]};
+  Row r3 = {m[2][0]*n[0][0]+m[2][1]*n[1][0]+m[2][2]*n[2][0]+m[2][3]*n[3][0],
+            m[2][0]*n[0][1]+m[2][1]*n[1][1]+m[2][2]*n[2][1]+m[2][3]*n[3][1],
+            m[2][0]*n[0][2]+m[2][1]*n[1][2]+m[2][2]*n[2][2]+m[2][3]*n[3][2],
+            m[2][0]*n[0][3]+m[2][1]*n[1][3]+m[2][2]*n[2][3]+m[2][3]*n[3][3]};
+  Row r4 = {m[3][0]*n[0][0]+m[3][1]*n[1][0]+m[3][2]*n[2][0]+m[3][3]*n[3][0],
+            m[3][0]*n[0][1]+m[3][1]*n[1][1]+m[3][2]*n[2][1]+m[3][3]*n[3][1],
+            m[3][0]*n[0][2]+m[3][1]*n[1][2]+m[3][2]*n[2][2]+m[3][3]*n[3][2],
+            m[3][0]*n[0][3]+m[3][1]*n[1][3]+m[3][2]*n[2][3]+m[3][3]*n[3][3]};
+  return {r1,r2,r3,r4};
+}
+
+Row mul(Row x, Matrix m) {
+  return {x[0]*m[0][0]+x[1]*m[0][1]+x[2]*m[0][2]+x[3]*m[0][3],
+          x[0]*m[1][0]+x[1]*m[1][1]+x[2]*m[1][2]+x[3]*m[1][3],
+          x[0]*m[2][0]+x[1]*m[2][1]+x[2]*m[2][2]+x[3]*m[2][3],
+          x[0]*m[3][0]+x[1]*m[3][1]+x[2]*m[3][2]+x[3]*m[3][3]};
+}
+
+Row mul(Matrix m, Row x) {
+  return mul(x, m);
+}
+
+
+
 //return if p1 is closer to p0 than p2
 bool closer(Point p1, Point p2, Point p0) {
   float d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
   float d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
   return d1 < d2;
 }
-
 
 //Translate 2D array index of row column to 1D index.
 //Notice that x, or column index, starts with 0. 
@@ -160,6 +257,40 @@ void print_img_panel(ImagePanel img) {
   std::cout<<std::endl<<"Array size: "<<img.size()<<std::endl;
 }
 
+//get u,v,n from two non-collinear vectors
+UVN get_uvn(Vector V1, Vector V2) {
+
+  //get n, which is just normalized V1
+  Vector n = normalize(V1); 
+
+  //get u, which is normalized V2 x V1
+  Vector u = normalize(cross_product(V2, V1));
+
+  //get v, which is normalized n x u
+  Vector v = normalize(cross_product(n, u));
+
+  return {u,v,n};
+}
+
+//normalize a Vector
+Vector normalize(Vector x) {
+  return { x[0]/get_length(x), 
+           x[1]/get_length(x), 
+           x[2]/get_length(x) }; 
+}
+
+//calculates cross product of two Vectors
+Vector cross_product(Vector x, Vector y) {
+  return { x[1]*y[2] - x[2]*y[1],
+           x[2]*y[0] - x[0]*y[2],
+           x[0]*y[1] - x[1]*y[0]};
+}
+
+//calculates length of a Vector
+float get_length(Vector x) {
+  return sqrt(pow(x[0],2)+pow(x[1],2)+pow(x[2],2));
+}
+
 @
 \end{verbatim}
 
@@ -181,11 +312,13 @@ Here is an header file for typedefs and function declarations.
 #include <array>
 #include <functional>
 #include <iostream>
+#include <iomanip>
 
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
 typedef std::array<float, 3> Point;
 typedef std::array<float, 3> Vector;
+typedef std::array<Vector, 3> UVN;
 typedef struct {
 	Point intersection;	/* intersection point */
 	Vector normal;	/* intersection polygon normal vector */
@@ -221,10 +354,40 @@ Ray ray_construction(int, int);
 //helper functions
 Point mul(Point, Matrix);
 Point mul(Matrix, Point);
+Matrix mul(Matrix, Matrix);
+Row mul(Row, Matrix);
+Row mul(Matrix, Row);
 int to_1d(int, int);
 std::array<int, 2> to_2d(int);
 void print_img_panel(ImagePanel);
+void pmatrix(std::string, Matrix);
 bool closer(Point, Point, Point);
+UVN get_uvn(Vector V1, Vector V2);
+Matrix get_T(Point);
+Matrix get_Ti(Point);
+Matrix get_R(Point, Vector, Vector);
+Matrix get_Ri(Point, Vector, Vector);
+Matrix get_M(Point, Vector, Vector);
+Matrix get_Mi(Point, Vector, Vector);
+float get_length(Vector);
+Vector cross_product(Vector, Vector);
+Vector normalize(Vector);
+
+//global vars
+extern Matrix Mwc;
+extern Matrix Mcw;
+extern Matrix Mwl;
+extern Matrix Mlw;
+extern float xmin;
+extern float ymin;
+extern float xmax;
+extern float ymax;
+extern Pint VRP;
+extern Vector VPN;
+extern Vector VUP;
+extern float focal;
+extern Point LRP;
+extern float Ip;
 #endif
 @
 \end{verbatim}
@@ -248,7 +411,6 @@ POLY4 obj2 = {	0.0, 0.0, 0.0,	/* v0 */
 		0.0, 1.0, 0.0,	/* normal of the polygon */
 		0.8};		/* diffuse reflection coefficient */
 
-
 //unsigned char img[ROWS][COLS];
 
 /* definition of window on the image plane in the camera coordinates */
@@ -262,32 +424,24 @@ float ymax = 0.0175;
 
 
 /* definition of the camera parameters */
-float VRP[3] = {1.0, 2.0, 3.5};
-float VPN[3] = {0.0, -1.0, -2.5};
-float VUP[3] = {0.0, 1.0, 0.0};
+Point VRP = {1.0, 2.0, 3.5};
+Vector VPN = {0.0, -1.0, -2.5};
+Vector VUP = {0.0, 1.0, 0.0};
 
 float focal = 0.05;	/* focal length simulating 50 mm lens */
 
-
 /* definition of light source */
-float LPR[3] = {-10.0, 10.0, 2.0};	/* light position */
+Point LRP = {-10.0, 10.0, 2.0};	/* light position */
 float Ip = 200.0;	/* intensity of the point light source */
 
-/* === transformation matrices (to be constructed) === */
-
 /* Transformation from the world to the camera coordinates */
-Matrix Mwc =
-	{1.0, 0.0, 0.0, 0.0,
-	 0.0, 1.0, 0.0, 0.0,
-	 0.0, 0.0, 1.0, 0.0,
-	 0.0, 0.0, 0.0, 1.0};
-
+Matrix Mwc = get_M(VRP, VPN, VUP);
 /* Transformation from the camera to the world coordinates */
-Matrix Mcw =
-	{1.0, 0.0, 0.0, 0.0,
-	 0.0, 1.0, 0.0, 0.0,
-	 0.0, 0.0, 1.0, 0.0,
-	 0.0, 0.0, 0.0, 1.0};
+Matrix Mcw = get_Mi(VRP, VPN, VUP);
+/* Transformation from the world to light coordinates */
+Matrix Mwl = get_T(LRP);
+/* Transformation from the light to the world coordinates */
+Matrix Mlw = get_Ti(LRP);
 
 int main () {
   ImagePanel img;
@@ -296,33 +450,57 @@ int main () {
   //print_img_panel(img);
 
   //tests
+  pmatrix("Mwc:", Mwc);
+
+  pmatrix("Mcw:", Mcw);
+
   std::cout<<"to_1d function, expected to be 512:"<<std::endl;
   std::cout<<to_1d(0, 1)<<std::endl;
+
   std::cout<<"to_2d function, expected to be 0, 1:"<<std::endl;
   std::cout<<to_2d(512)[0]<<std::endl;
   std::cout<<to_2d(512)[1]<<std::endl;
+
   std::cout<<"to_1d function, expected to be 513:"<<std::endl;
   std::cout<<to_1d(1, 1)<<std::endl;
+
   std::cout<<"to_2d function, expected to be 1,1:"<<std::endl;
   std::cout<<to_2d(513)[0]<<std::endl;
   std::cout<<to_2d(513)[1]<<std::endl;
+
   std::cout<<"to_1d function, expected to be 1023:"<<std::endl;
   std::cout<<to_1d(511, 1)<<std::endl;
+
   std::cout<<"to_2d function, expected to be 511,1:"<<std::endl;
   std::cout<<to_2d(1023)[0]<<std::endl;
   std::cout<<to_2d(1023)[1]<<std::endl;
+
   std::cout<<"to_1d function, expected to be -1:"<<std::endl;
   std::cout<<to_1d(512, 1)<<std::endl;
+
   std::cout<<"to_2d function, expected to be -1,-1:"<<std::endl;
   std::cout<<to_2d(512*512)[0]<<std::endl;
   std::cout<<to_2d(512*512)[1]<<std::endl;
+
   std::cout<<"closer function, expected to be 1 and 0:"<<std::endl;
   std::cout<<closer({1,1,1},{2,2,2},{0,0,0})<<std::endl;
   std::cout<<closer({3,3,3},{2,2,2},{0,0,0})<<std::endl;
-  std::cout<<"mul function:"<<std::endl;
-  std::cout<<mul({3,3,3},Mcw)[0]<<std::endl;
-  std::cout<<mul(Mcw, {3,3,3})[1]<<std::endl;
-  std::cout<<mul({3,3,3},Mcw)[2]<<std::endl;
+
+  std::cout<<"mul function: point * matrix"<<std::endl;
+  Point a = {3,3,3};
+  std::cout<<mul(a, Mcw)[0]<<std::endl;
+  std::cout<<mul(Mcw, a)[1]<<std::endl;
+  std::cout<<mul(a, Mcw)[2]<<std::endl;
+
+  pmatrix("mul funciton: matrix*matrix:", mul(Mwc, Mcw));
+
+  std::cout<<"mul function: row * matrix"<<std::endl;
+  Row b = {3,3,3,3};
+  std::cout<<mul(b, Mcw)[0]<<std::endl;
+  std::cout<<mul(Mcw, b)[1]<<std::endl;
+  std::cout<<mul(b, Mcw)[2]<<std::endl;
+  std::cout<<mul(b, Mcw)[3]<<std::endl;
+
 
   return 0;
 }
