@@ -31,6 +31,8 @@ Ray ray_construction(int x, int y) {
   auto y_ = ymax - y_unit * y;
 
   //get vector v0. it is trival that VRP is p0
+  Point ori = {0,0,0};
+  Point p0 = mul(Mcw, ori);
   Point p1_ = {x_, y_, focal};
   Point p1 = mul(Mcw, p1_);
   Point v0 = {p1[0] - VRP[0],
@@ -40,6 +42,7 @@ Ray ray_construction(int x, int y) {
   if ((x==0 && y==0) || (x==511 && y==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y<<std::endl;
     std::cout<<"p0: x:"<<VRP[0]<<", y:"<<VRP[1]<<", z:"<<VRP[2]<<std::endl;
+    std::cout<<"p0: x:"<<p0[0]<<", y:"<<p0[1]<<", z:"<<p0[2]<<std::endl;
     //std::cout<<"p1_: x:"<<p1_[0]<<", y:"<<p1_[1]<<", z:"<<p1_[2]<<std::endl;
     std::cout<<"p1: x:"<<p1[0]<<", y:"<<p1[1]<<", z:"<<p1[2]<<std::endl;
     std::cout<<"v0: x:"<<v0[0]<<", y:"<<v0[1]<<", z:"<<v0[2]<<std::endl;
@@ -217,8 +220,6 @@ Row mul(Row x, Matrix m) {
 Row mul(Matrix m, Row x) {
   return mul(x, m);
 }
-
-
 
 //return if p1 is closer to p0 than p2
 bool closer(Point p1, Point p2, Point p0) {
