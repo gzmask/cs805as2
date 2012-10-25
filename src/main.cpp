@@ -31,10 +31,6 @@ Point VRP = {1.0, 2.0, 3.5};
 Vector VPN = {0.0, -1.0, -2.5};
 Vector VUP = {0.0, 1.0, 0.0};
 
-Point vrp = {6.0, 10.0, -5.0};
-Vector vpn = {-6.0, -9.0, 5.0}; 
-Vector vup = {0.0, 1.0, 0.0};
-
 float focal = 0.05;	/* focal length simulating 50 mm lens */
 
 /* definition of light source */
@@ -57,7 +53,11 @@ int main () {
   //print_img_panel(img);
 
   //tests
+  Point vrp = {6.0, 10.0, -5.0};
+  Vector vpn = {-6.0, -9.0, 5.0}; 
+  Vector vup = {0.0, 1.0, 0.0};
   auto uvn = get_uvn(vpn, vup);
+  std::cout<<"get_uvn function:"<<std::endl;
   for (auto vecotr : uvn) {//for each Vecotr in uvn
     for (auto num : vecotr) {//for each number in Vecotr
       std::cout<<num<<',';
@@ -66,11 +66,17 @@ int main () {
   }
   
   Matrix mwc = get_M(vrp, vpn, vup);
+  Matrix mcw = get_Mi(vrp, vpn, vup);
   Matrix twc = get_T(vrp);
+  Matrix tcw = get_Ti(vrp);
   Matrix rwc = get_R(vrp, vpn, vup);
+  Matrix rcw = get_Ri(vrp, vpn, vup);
   pmatrix("mwc:", mwc);
   pmatrix("twc:", twc);
   pmatrix("rwc:", rwc);
+  pmatrix("mcw:", mcw);
+  pmatrix("tcw:", tcw);
+  pmatrix("rcw:", rcw);
 
   pmatrix("Mcw:", Mcw);
 

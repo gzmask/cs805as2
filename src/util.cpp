@@ -36,14 +36,14 @@ Ray ray_construction(int x, int y) {
   Point p1_ = {x_, y_, focal};
   Point p1 = mul(Mcw, p1_);
   Point v0 = {p1[0] - VRP[0],
-              p1[1] - VRP[1], 
-              p1[2] - VRP[2]};
+    p1[1] - VRP[1], 
+    p1[2] - VRP[2]};
 
   if ((x==0 && y==0) || (x==511 && y==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y<<std::endl;
     std::cout<<"p0: x:"<<VRP[0]<<", y:"<<VRP[1]<<", z:"<<VRP[2]<<std::endl;
     std::cout<<"p0: x:"<<p0[0]<<", y:"<<p0[1]<<", z:"<<p0[2]<<std::endl;
-    //std::cout<<"p1_: x:"<<p1_[0]<<", y:"<<p1_[1]<<", z:"<<p1_[2]<<std::endl;
+    std::cout<<"p1_: x:"<<p1_[0]<<", y:"<<p1_[1]<<", z:"<<p1_[2]<<std::endl;
     std::cout<<"p1: x:"<<p1[0]<<", y:"<<p1[1]<<", z:"<<p1[2]<<std::endl;
     std::cout<<"v0: x:"<<v0[0]<<", y:"<<v0[1]<<", z:"<<v0[2]<<std::endl;
   }
@@ -142,10 +142,10 @@ Matrix get_Ti(Point vrp) {
 //get rotation matrix
 Matrix get_R(Point vrp, Vector vpn, Vector vup) {
   //first get the translation matrix from world to view
-  auto mt = get_T(vrp);
+  //auto mt = get_T(vrp);
 
   //we can see vpn_ and vup_ as vectors. such that we can apply them to get_uvn function from q2
-  auto uvn = get_uvn(vup, vpn);
+  auto uvn = get_uvn(vpn, vup);
   //finally contruct our roation matrix using method 2 on class notes
   Row r1 = { uvn[0][0],uvn[0][1],uvn[0][2],0 };
   Row r2 = { uvn[1][0],uvn[1][1],uvn[1][2],0 };
