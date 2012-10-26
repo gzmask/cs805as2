@@ -92,4 +92,6 @@ extern Vector VUP;
 extern double focal;
 extern Point LRP;
 extern double Ip;
+extern SPHERE obj1;
+extern POLY4 obj2;
 #endif

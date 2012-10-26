@@ -2,7 +2,7 @@
 #include <cmath>
 
 //pixel iterator for img panel.
-ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
+ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func) {
   int i = 0;
   for (auto& pixel: img) { //foreach pixel in empty_img
     //using to_2d function to get x,y camera coordinates
@@ -19,12 +19,12 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
 //ray constructor
 Ray ray_construction(int x, int y) {
   //calculate x unit
-  double x_unit = -(xmax-xmin) / IMG_X;
-  double y_unit = (ymax-ymin) / IMG_Y;
+  double x_delta = (xmax-xmin) / IMG_X;
+  double y_delta = (ymax-ymin) / IMG_Y;
 
   //calculate the point on img panel with world coordinate
-  double x_ = xmax + x_unit * x;
-  double y_ = ymax - y_unit * y;
+  double x_ = xmax - x_delta * x;
+  double y_ = ymax - y_delta * y;
 
   //get vector v0. it is trival that VRP is p0
   Point p0 = VRP;
@@ -35,8 +35,6 @@ Ray ray_construction(int x, int y) {
     p1[2] - p0[2]};
   Vector v0 = normalize(v0_);
 
-
-  /* test
   if ((x==0 ) || (x==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y;
     //std::cout<<"p0: x:"<<VRP[0]<<", y:"<<VRP[1]<<", z:"<<VRP[2]<<std::endl;
@@ -46,9 +44,8 @@ Ray ray_construction(int x, int y) {
     std::cout<<"v0: x:"<<v0[0]<<", y:"<<v0[1]<<", z:"<<v0[2]<<"=====";
     std::cout<<std::endl;
   }
-  */
 
-  return { VRP[0], VRP[1], VRP[2],
+  return { p0[0], p0[1], p0[2],
            v0[0], v0[1], v0[2]};
 }
 
@@ -86,9 +83,18 @@ Intersection ray_objects_intersection(Ray ray) {
 }
 
 Intersection ray_sphere_intersection(Ray ray) {
-    return {-1,-1,-1,
-            -1,-1,-1,
-            -1.0};
+  /*
+  std::cout<<"ref: "<<ray.ref[0]<<" "
+           <<ray.ref[1]<<" "
+           <<ray.ref[2]<<" direction: "
+           <<ray.direction[0]<<" "
+           <<ray.direction[1]<<" "
+           <<ray.direction[2]<<std::endl;
+  std::cout<<"obj1: "<<obj1.x<<std::endl;
+  */
+  return {-1,-1,-1,
+          -1,-1,-1,
+          -1.0};
 }
 
 Intersection ray_polygon_intersection(Ray ray) {
