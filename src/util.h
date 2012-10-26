@@ -16,29 +16,29 @@
 
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
-typedef std::array<float, 3> Point;
-typedef std::array<float, 3> Vector;
+typedef std::array<double, 3> Point;
+typedef std::array<double, 3> Vector;
 typedef std::array<Vector, 3> UVN;
 typedef struct {
 	Point intersection;	/* intersection point */
 	Vector normal;	/* intersection polygon normal vector */
-	float kd;	/* diffuse reflection coefficient of the surface */
+	double kd;	/* diffuse reflection coefficient of the surface */
 } Intersection;
 typedef struct {
 	Point ref;	/* reference point, where the ray is from */
 	Vector direction;	/* ray direction */
 } Ray;
-typedef std::array<float, 4> Row;
+typedef std::array<double, 4> Row;
 typedef std::array<Row, 4> Matrix;
 typedef struct {
-	float x, y, z;	/* center of the circle */
-	float radius;	/* radius of the circle */
-	float kd;	/* diffuse reflection coefficient */
+	double x, y, z;	/* center of the circle */
+	double radius;	/* radius of the circle */
+	double kd;	/* diffuse reflection coefficient */
 } SPHERE;
 typedef struct {
-	float v[4][3];	/* list of vertices */
-	float N[3];	/* normal of the polygon */
-	float kd;	/* diffuse reflection coefficient */
+	double v[4][3];	/* list of vertices */
+	double N[3];	/* normal of the polygon */
+	double kd;	/* diffuse reflection coefficient */
 } POLY4;
 
 //functions
@@ -69,23 +69,27 @@ Matrix get_R(Point, Vector, Vector);
 Matrix get_Ri(Point, Vector, Vector);
 Matrix get_M(Point, Vector, Vector);
 Matrix get_Mi(Point, Vector, Vector);
-float get_length(Vector);
+double get_length(Vector);
 Vector cross_product(Vector, Vector);
 Vector normalize(Vector);
 
 //global vars
 extern Matrix Mwc;
+extern Matrix Rwc;
+extern Matrix Twc;
 extern Matrix Mcw;
+extern Matrix Rcw;
+extern Matrix Tcw;
 extern Matrix Mwl;
 extern Matrix Mlw;
-extern float xmin;
-extern float ymin;
-extern float xmax;
-extern float ymax;
+extern double xmin;
+extern double ymin;
+extern double xmax;
+extern double ymax;
 extern Point VRP;
 extern Vector VPN;
 extern Vector VUP;
-extern float focal;
+extern double focal;
 extern Point LRP;
-extern float Ip;
+extern double Ip;
 #endif

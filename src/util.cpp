@@ -1,5 +1,5 @@
 #include "util.h"
-#include <math.h>
+#include <cmath>
 
 //pixel iterator for img panel.
 ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
@@ -19,25 +19,26 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
 //ray constructor
 Ray ray_construction(int x, int y) {
   //calculate x unit
-  auto x_sum = xmin - xmax;
-  auto x_unit = x_sum / IMG_X;
-
-  //calculate y unit
-  auto y_sum = ymax - ymin;
-  auto y_unit = y_sum / IMG_Y;
+  double x_unit = -(xmax-xmin) / IMG_X;
+  double y_unit = (ymax-ymin) / IMG_Y;
 
   //calculate the point on img panel with world coordinate
-  auto x_ = xmax + x_unit * x;
-  auto y_ = ymax - y_unit * y;
+  double x_ = xmax + x_unit * x;
+  double y_ = ymax - y_unit * y;
 
   //get vector v0. it is trival that VRP is p0
   Point ori = {0,0,0};
   Point p0 = mul(Mcw, ori);
   Point p1_ = {x_, y_, focal};
   Point p1 = mul(Mcw, p1_);
-  Point v0 = {p1[0] - VRP[0],
-    p1[1] - VRP[1], 
-    p1[2] - VRP[2]};
+  Vector v0 = mul(Rcw, p1_);
+  /*
+  Vector v0_ = {p1[0] - p0[0],
+    p1[1] - p0[1], 
+    p1[2] - p0[2]};
+  Vector v0 = normalize(v0_);
+    */
+
 
   if ((x==0 && y==0) || (x==511 && y==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y<<std::endl;
@@ -181,7 +182,7 @@ Point mul(Matrix m, Point x) {
 }
 
 Point mul(Point x, Matrix m) {
-  float w =  m[3][0] * x[0]
+  double w =  m[3][0] * x[0]
         + m[3][1] * x[1]
         + m[3][2] * x[2]
         + m[3][3];
@@ -223,8 +224,8 @@ Row mul(Matrix m, Row x) {
 
 //return if p1 is closer to p0 than p2
 bool closer(Point p1, Point p2, Point p0) {
-  float d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
-  float d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
+  double d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
+  double d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
   return d1 < d2;
 }
 
@@ -288,7 +289,7 @@ Vector cross_product(Vector x, Vector y) {
 }
 
 //calculates length of a Vector
-float get_length(Vector x) {
+double get_length(Vector x) {
   return sqrt(pow(x[0],2)+pow(x[1],2)+pow(x[2],2));
 }
 

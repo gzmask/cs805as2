@@ -31,7 +31,7 @@
 \begin{verbatim}
 <<src/util.cpp>>=
 #include "util.h"
-#include <math.h>
+#include <cmath>
 
 //pixel iterator for img panel.
 ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
@@ -51,25 +51,23 @@ ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func){
 //ray constructor
 Ray ray_construction(int x, int y) {
   //calculate x unit
-  auto x_sum = xmin - xmax;
-  auto x_unit = x_sum / IMG_X;
-
-  //calculate y unit
-  auto y_sum = ymax - ymin;
-  auto y_unit = y_sum / IMG_Y;
+  double x_unit = -(xmax-xmin) / IMG_X;
+  double y_unit = (ymax-ymin) / IMG_Y;
 
   //calculate the point on img panel with world coordinate
-  auto x_ = xmax + x_unit * x;
-  auto y_ = ymax - y_unit * y;
+  double x_ = xmax + x_unit * x;
+  double y_ = ymax - y_unit * y;
 
   //get vector v0. it is trival that VRP is p0
   Point ori = {0,0,0};
   Point p0 = mul(Mcw, ori);
   Point p1_ = {x_, y_, focal};
   Point p1 = mul(Mcw, p1_);
-  Point v0 = {p1[0] - VRP[0],
-    p1[1] - VRP[1], 
-    p1[2] - VRP[2]};
+  Vector v0_ = {p1[0] - p0[0],
+    p1[1] - p0[1], 
+    p1[2] - p0[2]};
+  Vector v0 = normalize(v0_);
+
 
   if ((x==0 && y==0) || (x==511 && y==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y<<std::endl;
@@ -213,7 +211,7 @@ Point mul(Matrix m, Point x) {
 }
 
 Point mul(Point x, Matrix m) {
-  float w =  m[3][0] * x[0]
+  double w =  m[3][0] * x[0]
         + m[3][1] * x[1]
         + m[3][2] * x[2]
         + m[3][3];
@@ -255,8 +253,8 @@ Row mul(Matrix m, Row x) {
 
 //return if p1 is closer to p0 than p2
 bool closer(Point p1, Point p2, Point p0) {
-  float d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
-  float d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
+  double d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
+  double d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
   return d1 < d2;
 }
 
@@ -320,7 +318,7 @@ Vector cross_product(Vector x, Vector y) {
 }
 
 //calculates length of a Vector
-float get_length(Vector x) {
+double get_length(Vector x) {
   return sqrt(pow(x[0],2)+pow(x[1],2)+pow(x[2],2));
 }
 
@@ -349,29 +347,29 @@ Here is an header file for typedefs and function declarations.
 
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
-typedef std::array<float, 3> Point;
-typedef std::array<float, 3> Vector;
+typedef std::array<double, 3> Point;
+typedef std::array<double, 3> Vector;
 typedef std::array<Vector, 3> UVN;
 typedef struct {
 	Point intersection;	/* intersection point */
 	Vector normal;	/* intersection polygon normal vector */
-	float kd;	/* diffuse reflection coefficient of the surface */
+	double kd;	/* diffuse reflection coefficient of the surface */
 } Intersection;
 typedef struct {
 	Point ref;	/* reference point, where the ray is from */
 	Vector direction;	/* ray direction */
 } Ray;
-typedef std::array<float, 4> Row;
+typedef std::array<double, 4> Row;
 typedef std::array<Row, 4> Matrix;
 typedef struct {
-	float x, y, z;	/* center of the circle */
-	float radius;	/* radius of the circle */
-	float kd;	/* diffuse reflection coefficient */
+	double x, y, z;	/* center of the circle */
+	double radius;	/* radius of the circle */
+	double kd;	/* diffuse reflection coefficient */
 } SPHERE;
 typedef struct {
-	float v[4][3];	/* list of vertices */
-	float N[3];	/* normal of the polygon */
-	float kd;	/* diffuse reflection coefficient */
+	double v[4][3];	/* list of vertices */
+	double N[3];	/* normal of the polygon */
+	double kd;	/* diffuse reflection coefficient */
 } POLY4;
 
 //functions
@@ -402,25 +400,29 @@ Matrix get_R(Point, Vector, Vector);
 Matrix get_Ri(Point, Vector, Vector);
 Matrix get_M(Point, Vector, Vector);
 Matrix get_Mi(Point, Vector, Vector);
-float get_length(Vector);
+double get_length(Vector);
 Vector cross_product(Vector, Vector);
 Vector normalize(Vector);
 
 //global vars
 extern Matrix Mwc;
+extern Matrix Rwc;
+extern Matrix Twc;
 extern Matrix Mcw;
+extern Matrix Rcw;
+extern Matrix Tcw;
 extern Matrix Mwl;
 extern Matrix Mlw;
-extern float xmin;
-extern float ymin;
-extern float xmax;
-extern float ymax;
+extern double xmin;
+extern double ymin;
+extern double xmax;
+extern double ymax;
 extern Point VRP;
 extern Vector VPN;
 extern Vector VUP;
-extern float focal;
+extern double focal;
 extern Point LRP;
-extern float Ip;
+extern double Ip;
 #endif
 @
 \end{verbatim}
@@ -450,10 +452,10 @@ POLY4 obj2 = {	0.0, 0.0, 0.0,	/* v0 */
 /* They are used in mapping (j, i) in the screen coordinates into */
 /* (x, y) on the image plane in the camera coordinates */
 /* The window size used here simulates the 35 mm film. */
-float xmin = 0.0175;
-float ymin = -0.0175;
-float xmax = -0.0175;
-float ymax = 0.0175;
+double xmin = 0.0175;
+double ymin = -0.0175;
+double xmax = -0.0175;
+double ymax = 0.0175;
 
 
 /* definition of the camera parameters */
@@ -461,16 +463,20 @@ Point VRP = {1.0, 2.0, 3.5};
 Vector VPN = {0.0, -1.0, -2.5};
 Vector VUP = {0.0, 1.0, 0.0};
 
-float focal = 0.05;	/* focal length simulating 50 mm lens */
+double focal = 0.05;	/* focal length simulating 50 mm lens */
 
 /* definition of light source */
 Point LRP = {-10.0, 10.0, 2.0};	/* light position */
-float Ip = 200.0;	/* intensity of the point light source */
+double Ip = 200.0;	/* intensity of the point light source */
 
 /* Transformation from the world to the camera coordinates */
 Matrix Mwc = get_M(VRP, VPN, VUP);
+Matrix Rwc = get_R(VRP, VPN, VUP);
+Matrix Twc = get_T(VRP);
 /* Transformation from the camera to the world coordinates */
 Matrix Mcw = get_Mi(VRP, VPN, VUP);
+Matrix Rcw = get_Ri(VRP, VPN, VUP);
+Matrix Tcw = get_Ti(VRP);
 /* Transformation from the world to light coordinates */
 Matrix Mwl = get_T(LRP);
 /* Transformation from the light to the world coordinates */

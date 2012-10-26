@@ -20,10 +20,10 @@ POLY4 obj2 = {	0.0, 0.0, 0.0,	/* v0 */
 /* They are used in mapping (j, i) in the screen coordinates into */
 /* (x, y) on the image plane in the camera coordinates */
 /* The window size used here simulates the 35 mm film. */
-float xmin = 0.0175;
-float ymin = -0.0175;
-float xmax = -0.0175;
-float ymax = 0.0175;
+double xmin = 0.0175;
+double ymin = -0.0175;
+double xmax = -0.0175;
+double ymax = 0.0175;
 
 
 /* definition of the camera parameters */
@@ -31,16 +31,20 @@ Point VRP = {1.0, 2.0, 3.5};
 Vector VPN = {0.0, -1.0, -2.5};
 Vector VUP = {0.0, 1.0, 0.0};
 
-float focal = 0.05;	/* focal length simulating 50 mm lens */
+double focal = 0.05;	/* focal length simulating 50 mm lens */
 
 /* definition of light source */
 Point LRP = {-10.0, 10.0, 2.0};	/* light position */
-float Ip = 200.0;	/* intensity of the point light source */
+double Ip = 200.0;	/* intensity of the point light source */
 
 /* Transformation from the world to the camera coordinates */
 Matrix Mwc = get_M(VRP, VPN, VUP);
+Matrix Rwc = get_R(VRP, VPN, VUP);
+Matrix Twc = get_T(VRP);
 /* Transformation from the camera to the world coordinates */
 Matrix Mcw = get_Mi(VRP, VPN, VUP);
+Matrix Rcw = get_Ri(VRP, VPN, VUP);
+Matrix Tcw = get_Ti(VRP);
 /* Transformation from the world to light coordinates */
 Matrix Mwl = get_T(LRP);
 /* Transformation from the light to the world coordinates */
