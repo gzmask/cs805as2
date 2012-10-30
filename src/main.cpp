@@ -51,11 +51,6 @@ Matrix Mwl = get_T(LRP);
 Matrix Mlw = get_Ti(LRP);
 
 int main () {
-  ImagePanel img;
-  img = init_img_panel(img);
-  img = foreach_pixel_exec(img, ray_tracing);
-  //print_img_panel(img);
-
   //tests
   Point vrp = {6.0, 10.0, -5.0};
   Vector vpn = {-6.0, -9.0, 5.0}; 
@@ -131,6 +126,11 @@ int main () {
   std::cout<<mul(b, Mcw)[2]<<std::endl;
   std::cout<<mul(b, Mcw)[3]<<std::endl;
 
+  //main program
+  ImagePanel img;
+  img = init_img_panel(img);
+  img = foreach_pixel_exec(img, ray_tracing);
+  //print_img_panel(img);
 
   return 0;
 }

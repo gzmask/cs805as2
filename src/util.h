@@ -47,8 +47,8 @@ ImagePanel init_img_panel(ImagePanel);
 int ray_tracing(Ray);
 Intersection ray_objects_intersection(Ray);
 int shading(Intersection);
-Intersection ray_sphere_intersection(Ray);
-Intersection ray_polygon_intersection(Ray);
+Intersection ray_sphere_intersection(Ray, SPHERE);
+Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);
 
 //helper functions

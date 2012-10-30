@@ -35,6 +35,7 @@ Ray ray_construction(int x, int y) {
     p1[2] - p0[2]};
   Vector v0 = normalize(v0_);
 
+  /*
   if ((x==0 ) || (x==511)) {
     std::cout<<"img: x:"<<x<<", y:"<<y;
     //std::cout<<"p0: x:"<<VRP[0]<<", y:"<<VRP[1]<<", z:"<<VRP[2]<<std::endl;
@@ -44,6 +45,7 @@ Ray ray_construction(int x, int y) {
     std::cout<<"v0: x:"<<v0[0]<<", y:"<<v0[1]<<", z:"<<v0[2]<<"=====";
     std::cout<<std::endl;
   }
+  */
 
   return { p0[0], p0[1], p0[2],
            v0[0], v0[1], v0[2]};
@@ -65,8 +67,8 @@ int ray_tracing(Ray ray) {
 
 //calculate the ray object intersection point
 Intersection ray_objects_intersection(Ray ray) {
-  auto sphere_hit = ray_sphere_intersection(ray);
-  auto polygon_hit = ray_polygon_intersection(ray);
+  auto sphere_hit = ray_sphere_intersection(ray, obj1);
+  auto polygon_hit = ray_polygon_intersection(ray, obj2);
   if (sphere_hit.kd < 0 && polygon_hit.kd < 0) {
     return {-1,-1,-1,
             -1,-1,-1,
@@ -82,25 +84,65 @@ Intersection ray_objects_intersection(Ray ray) {
   }
 }
 
-Intersection ray_sphere_intersection(Ray ray) {
-  /*
-  std::cout<<"ref: "<<ray.ref[0]<<" "
-           <<ray.ref[1]<<" "
-           <<ray.ref[2]<<" direction: "
-           <<ray.direction[0]<<" "
-           <<ray.direction[1]<<" "
-           <<ray.direction[2]<<std::endl;
-  std::cout<<"obj1: "<<obj1.x<<std::endl;
-  */
+Intersection ray_sphere_intersection(Ray ray, SPHERE obj) {
+  //get A,B,C
+  //A = Xd^2 + Yd^2 + Zd^2
+  double A = pow(ray.direction[0], 2) +
+             pow(ray.direction[1], 2) +
+             pow(ray.direction[2], 2);
+  //B = 2 * (Xd * (X0 - Xc) + Yd * (Y0 - Yc) + Zd * (Z0 - Zc))
+  double B = 2 * (ray.direction[0] * (ray.ref[0] - obj.x) +
+                  ray.direction[1] * (ray.ref[1] - obj.y) +
+                  ray.direction[2] * (ray.ref[2] - obj.z) );
+  //C = (X0 - Xc)^2 + (Y0 - Yc)^2 + (Z0 - Zc)^2 - Sr^2
+  double C = pow(ray.ref[0]-obj.x, 2) +
+             pow(ray.ref[1]-obj.y, 2) +
+             pow(ray.ref[2]-obj.z, 2) - 
+             pow(obj.radius, 2);
+
+  //get discriminant
+  double discriminant = pow(B,2) - 4*C;
+
+  //return null if discriminant is less than 0
+  Intersection null_ = {-1,-1,-1,
+                        -1,-1,-1,
+                        -1.0};
+  if (discriminant < 0)
+    return null_;
+
+  //compute t0 = (- B - (B^2 - 4*C)^1/2) / 2
+  double t0 = (-B - sqrt(discriminant)) / 2;
+  double t1 = (-B + sqrt(discriminant)) / 2;
+
+  //compute the intersection point Ri = [x0 + xd * ti ,  y0 + yd * ti,  z0 + zd * ti]
+  Point Ri;
+  if (discriminant > 0) {
+    Ri = {ray.ref[0] + ray.direction[0] * t0, 
+          ray.ref[1] + ray.direction[1] * t0, 
+          ray.ref[2] + ray.direction[2] * t0}; 
+  } else {
+    Ri = {ray.ref[0] + ray.direction[0] * t1, 
+          ray.ref[1] + ray.direction[1] * t1, 
+          ray.ref[2] + ray.direction[2] * t1}; 
+  }
+
+  //compute the surface normal SN = [(xi - xc)/Sr,   (yi - yc)/Sr,   (zi - zc)/Sr]
+  Vector SN = { (Ri[0]-obj.x)/obj.radius,
+                (Ri[1]-obj.y)/obj.radius,
+                (Ri[2]-obj.z)/obj.radius };
+
+  Intersection result = { Ri[0], Ri[1], Ri[2],
+                          SN[0], SN[1], SN[2],
+                          obj.kd };
+  return result;
+}
+
+Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
+  //compute ray plane intersection
+
   return {-1,-1,-1,
           -1,-1,-1,
           -1.0};
-}
-
-Intersection ray_polygon_intersection(Ray ray) {
-    return {-1,-1,-1,
-            -1,-1,-1,
-            -1.0};
 }
 
 //calculate shading value from 0~255 accordingly to intersection info
