@@ -152,7 +152,7 @@ Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
     return null_;
 
   //second compute V0 = -(Pn· R0 + D)
-  double V0 = - (dot_product(obj.N, ray.ref) + 1);
+  double V0 = - (dot_product(obj.N, ray.ref) + get_D_poly4(obj));
 
   double t = V0/Vd;
 
@@ -172,12 +172,6 @@ Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
     return null_;
 }
 
-//check if point is inside a 4 side polygon
-bool in_poly4(Point p, POLY4 obj) {
-
-  return true;
-}
-
 //calculate shading value from 0~255 accordingly to intersection info
 int shading(Intersection p) {
   if (p.kd < 0) {
@@ -188,6 +182,18 @@ int shading(Intersection p) {
 }
 
 //==========helpers==========
+
+//get the D of Ax+By+Cz+D=0 from POLY4
+double get_D_poly4(POLY4 obj) {
+  return -(obj.N[0]*obj.v1[0]+obj.N[1]*obj.v1[1]+obj.N[2]*obj.v1[2]);
+}
+
+//check if point is inside a 4 side polygon
+bool in_poly4(Point p, POLY4 obj) {
+
+  return true;
+}
+
 
 //prints a matrix
 void pmatrix(std::string str, Matrix m) {
