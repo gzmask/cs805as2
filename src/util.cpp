@@ -62,6 +62,7 @@ ImagePanel init_img_panel(ImagePanel img) {
 //translate ray equation to an 0~255 shading value
 int ray_tracing(Ray ray) {
   Intersection p = ray_objects_intersection(ray);
+  std::cout<<"Intersection: "<<p.intersection[0]<<","<<p.intersection[1]<<","<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
   return shading(p); 
 }
 
@@ -77,7 +78,7 @@ Intersection ray_objects_intersection(Ray ray) {
     return sphere_hit; 
   } else if (sphere_hit.kd < 0) {
     return polygon_hit; 
-  } else if (closer(sphere_hit.intersection, polygon_hit.intersection, {0,0,0})) {
+  } else if (closer(sphere_hit.intersection, polygon_hit.intersection, ray.ref)) {
     return sphere_hit; 
   } else {
     return polygon_hit; 
@@ -131,18 +132,50 @@ Intersection ray_sphere_intersection(Ray ray, SPHERE obj) {
                 (Ri[1]-obj.y)/obj.radius,
                 (Ri[2]-obj.z)/obj.radius };
 
-  Intersection result = { Ri[0], Ri[1], Ri[2],
-                          SN[0], SN[1], SN[2],
-                          obj.kd };
+  Intersection result = { Ri, SN, obj.kd };
   return result;
 }
 
 Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
-  //compute ray plane intersection
+  Intersection null_ = {-1,-1,-1, -1,-1,-1, -1.0};
 
-  return {-1,-1,-1,
-          -1,-1,-1,
-          -1.0};
+  //compute ray plane intersection
+  //first compute Pn · Rd = Vd 
+  double Vd = dot_product(obj.N, ray.direction);
+
+  //Vd = 0: ray is parallel to the plane
+  if (Vd == 0) 
+    return null_;
+
+  //Vd > 0: plane facing away from the ray
+  if (Vd > 0)
+    return null_;
+
+  //second compute V0 = -(Pn· R0 + D)
+  double V0 = - (dot_product(obj.N, ray.ref) + 1);
+
+  double t = V0/Vd;
+
+  //If t < 0 then the ray intersects plane at the negative side of the ray
+  if (t<0) 
+    return null_;
+
+  //compute intersection point: Pi = [Xi Yi Zi] = [X0 + Xd * t Y0 + Yd * t Z0 + Zd * t]
+  Point Pi = { ray.ref[0] + ray.direction[0]*t, 
+               ray.ref[1] + ray.direction[1]*t,
+               ray.ref[2] + ray.direction[2]*t };
+
+  //check if intersection point is inside the polygon
+  if (in_poly4(Pi, obj))
+    return { Pi, obj.N, obj.kd };
+  else
+    return null_;
+}
+
+//check if point is inside a 4 side polygon
+bool in_poly4(Point p, POLY4 obj) {
+
+  return true;
 }
 
 //calculate shading value from 0~255 accordingly to intersection info
@@ -271,8 +304,10 @@ Row mul(Matrix m, Row x) {
 
 //return if p1 is closer to p0 than p2
 bool closer(Point p1, Point p2, Point p0) {
-  double d1 = (p1[0] - p0[0])+(p1[1] - p0[1])+(p1[2] - p0[2]);
-  double d2 = (p2[0] - p0[0])+(p2[1] - p0[1])+(p2[2] - p0[2]);
+  Vector v1 = { (p1[0] - p0[0]), (p1[1] - p0[1]), (p1[2] - p0[2])};
+  double d1 = get_length(v1);
+  Vector v2 = { (p2[0] - p0[0]), (p2[1] - p0[1]), (p2[2] - p0[2])};
+  double d2 = get_length(v2);
   return d1 < d2;
 }
 
@@ -326,6 +361,12 @@ Vector normalize(Vector x) {
   return { x[0]/get_length(x), 
            x[1]/get_length(x), 
            x[2]/get_length(x) }; 
+}
+
+//dot product
+double dot_product(Vector x, Vector y) {
+  return x[0]*y[0]+x[1]*y[1]+x[2]*y[2]; 
+
 }
 
 //calculates cross product of two Vectors

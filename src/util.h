@@ -37,7 +37,7 @@ typedef struct {
 } SPHERE;
 typedef struct {
 	double v[4][3];	/* list of vertices */
-	double N[3];	/* normal of the polygon */
+	Vector N;	/* normal of the polygon */
 	double kd;	/* diffuse reflection coefficient */
 } POLY4;
 
@@ -52,6 +52,7 @@ Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);
 
 //helper functions
+bool in_poly4(Point, POLY4);
 Point mul(Point, Matrix);
 Point mul(Matrix, Point);
 Matrix mul(Matrix, Matrix);
@@ -71,6 +72,7 @@ Matrix get_M(Point, Vector, Vector);
 Matrix get_Mi(Point, Vector, Vector);
 double get_length(Vector);
 Vector cross_product(Vector, Vector);
+double dot_product(Vector, Vector);
 Vector normalize(Vector);
 
 //global vars
