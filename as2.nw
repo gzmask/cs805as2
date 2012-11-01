@@ -222,8 +222,14 @@ double get_D_poly4(POLY4 obj) {
 
 //check if point is inside a 4 side polygon
 bool in_poly4(Point p, POLY4 obj) {
+  //first flatten the polygon
 
   return true;
+}
+
+//make 2D polygon from 3D polygon
+POLY4_2D flatten ( POLY4 obj ) {
+
 }
 
 

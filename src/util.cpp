@@ -181,7 +181,7 @@ int shading(Intersection p) {
   return 255;
 }
 
-//==========helpers==========
+//==========helper functions==========
 
 //get the D of Ax+By+Cz+D=0 from POLY4
 double get_D_poly4(POLY4 obj) {
