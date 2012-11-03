@@ -62,7 +62,7 @@ ImagePanel init_img_panel(ImagePanel img) {
 //translate ray equation to an 0~255 shading value
 int ray_tracing(Ray ray) {
   Intersection p = ray_objects_intersection(ray);
-  std::cout<<"Intersection: "<<p.intersection[0]<<","<<p.intersection[1]<<","<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
+  //std::cout<<"Intersection: "<<p.intersection[0]<<","<<p.intersection[1]<<","<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
   return shading(p); 
 }
 
@@ -190,10 +190,127 @@ double get_D_poly4(POLY4 obj) {
 
 //check if point is inside a 4 side polygon
 bool in_poly4(Point p, POLY4 obj) {
+  //flatten the polygon and the point
+  POLY4_2D obj2d = flatten(obj, p);
+
+  //tranlate flatten polygon to origin
+  obj2d.v1[0] = obj2d.v1[0] - obj2d.p[0];
+  obj2d.v1[1] = obj2d.v1[1] - obj2d.p[1];
+  obj2d.v2[0] = obj2d.v2[0] - obj2d.p[0];
+  obj2d.v2[1] = obj2d.v2[1] - obj2d.p[1];
+  obj2d.v3[0] = obj2d.v3[0] - obj2d.p[0];
+  obj2d.v3[1] = obj2d.v3[1] - obj2d.p[1];
+  obj2d.v4[0] = obj2d.v4[0] - obj2d.p[0];
+  obj2d.v4[1] = obj2d.v4[1] - obj2d.p[1];
+
+  //count intersections with v=0 (u>0) (u<0) and u=0 (v>0) (v<0)
+  Four_counter counter = {0,0,0,0};
+  counter = count_intersection(obj2d.v1, obj2d.v2, counter);
+  //counter = count_intersection(obj2d.v2, obj2d.v3, counter);
+  //counter = count_intersection(obj2d.v3, obj2d.v4, counter);
+  //counter = count_intersection(obj2d.v4, obj2d.v1, counter);
+  std::cout<<"count: "<<counter[0]<<", "<<counter[1]<<", "<<counter[2]<<", "<<counter[3]<<std::endl;
 
   return true;
 }
 
+//count intersection of edge v1-v2 with u and v axises
+Four_counter count_intersection(Point2D v1, Point2D v2, Four_counter counter) {
+  int u_plus_count = counter[0];
+  int u_minus_count = counter[1];
+  int v_plus_count = counter[2];
+  int v_minus_count = counter[3];
+
+  //if v1 on u or v
+  if (v1[0]==0 && v1[1]>0) { //if v1 is on v_plus
+    v_plus_count+=2;
+  } else if (v1[0]==0 && v1[1]<0) {
+    v_minus_count+=2;
+  } else if (v1[1]==0 && v1[0]>0) {
+    u_plus_count+=2;
+  } else if (v1[1]==0 && v1[0]<0) {
+    u_minus_count+=2;
+  }
+
+  //if v2 on u or v
+  if (v2[0]==0 && v2[1]>0) { //if v2 is on v_plus
+    v_plus_count+=2;
+  } else if (v2[0]==0 && v2[1]<0) {
+    v_minus_count+=2;
+  } else if (v2[1]==0 && v2[0]>0) {
+    u_plus_count+=2;
+  } else if (v2[1]==0 && v2[0]<0) {
+    u_minus_count+=2;
+  }
+
+  if (v1[0]*v2[0] < 0) { //if v1 v2 are at different sides of v axis
+    if (fabs(v1[1] - v2[1]) > 0 ) { //if v1-v2 intersects at v_plus
+      v_plus_count++;
+    } else {
+      v_minus_count++;
+    }
+  } else if (v1[1]*v2[1] < 0) { //if v1 v2 are at differnt sides of x axis
+    if (fabs(v1[0] - v2[0]) > 0 ) { //if v1-v2 intersects at u_plus
+      u_plus_count++;
+    } else {
+      u_minus_count++;
+    }
+  }
+
+  return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+}
+
+//make 2D polygon from 3D polygon
+POLY4_2D flatten(POLY4 obj, Point p) {
+  //find out the dominated dimension
+  int drop_i = find_max(obj.N[0], obj.N[1], obj.N[2]);
+
+  //drop the dominated dimension
+  if (drop_i == 0) {
+    POLY4_2D result = {
+      obj.v1[1], obj.v1[2],
+      obj.v2[1], obj.v2[2],
+      obj.v3[1], obj.v3[2],
+      obj.v4[1], obj.v4[2],
+      p[1], p[2]
+      };
+    return result;
+  } else if (drop_i == 1) {
+    POLY4_2D result = {
+      obj.v1[0], obj.v1[2],
+      obj.v2[0], obj.v2[2],
+      obj.v3[0], obj.v3[2],
+      obj.v4[0], obj.v4[2],
+      p[0], p[2]
+      };
+    return result;
+  } else if (drop_i == 2) {
+    POLY4_2D result = {
+      obj.v1[0], obj.v1[1],
+      obj.v2[0], obj.v2[1],
+      obj.v3[0], obj.v3[1],
+      obj.v4[0], obj.v4[1],
+      p[0], p[1]
+      };
+    return result;
+  }
+
+  POLY4_2D null_ = { -1,-1, -1,-1, -1,-1, -1,-1 };
+  return null_;
+}
+
+//find out the max index for three doubles, 0: first, 1: second, 2: third
+int find_max(double x, double y, double z) {
+  if (fabs(x) >= fabs(y) && fabs(x) >= fabs(z)) {
+    return 0;
+  } else if (fabs(y) >= fabs(x) && fabs(y) >= fabs(z)) {
+    return 1;
+  } else if (fabs(z) >= fabs(x) && fabs(z) >= fabs(y)) {
+    return 2;
+  } else {
+    return -1;
+  }
+}
 
 //prints a matrix
 void pmatrix(std::string str, Matrix m) {

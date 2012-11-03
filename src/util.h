@@ -17,7 +17,9 @@
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
 typedef std::array<double, 3> Point;
+typedef std::array<double, 2> Point2D;
 typedef std::array<double, 3> Vector;
+typedef std::array<int, 4> Four_counter;
 typedef std::array<Vector, 3> UVN;
 typedef struct {
 	Point intersection;	/* intersection point */
@@ -36,16 +38,23 @@ typedef struct {
 	double kd;	/* diffuse reflection coefficient */
 } SPHERE;
 typedef struct {
-	//double v[4][3];	/* list of vertices */
-        Point v1;
+        Point v1;       /* list of vertices */
         Point v2;
         Point v3;
         Point v4;
 	Vector N;	/* normal of the polygon */
 	double kd;	/* diffuse reflection coefficient */
 } POLY4;
+typedef struct {
+        Point2D v1;
+        Point2D v2;
+        Point2D v3;
+        Point2D v4;
+        Point2D p;
+} POLY4_2D;
 
 //functions
+POLY4_2D flatten(POLY4, Point);
 ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Ray)>);
 ImagePanel init_img_panel(ImagePanel);
 int ray_tracing(Ray);
@@ -56,6 +65,8 @@ Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);
 
 //helper functions
+Four_counter count_intersection(Point2D, Point2D, Four_counter);
+int find_max(double, double, double);
 double get_D_poly4(POLY4);
 bool in_poly4(Point, POLY4);
 Point mul(Point, Matrix);
