@@ -55,11 +55,11 @@ typedef struct {
 
 //functions
 POLY4_2D flatten(POLY4, Point);
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Ray)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Ray, Point)>);
 ImagePanel init_img_panel(ImagePanel);
-int ray_tracing(Ray);
+int ray_tracing(Ray, Point);
 Intersection ray_objects_intersection(Ray);
-int shading(Intersection);
+int shading(Intersection, Point);
 Intersection ray_sphere_intersection(Ray, SPHERE);
 Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);

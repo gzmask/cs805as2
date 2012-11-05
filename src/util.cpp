@@ -2,15 +2,17 @@
 #include <cmath>
 
 //pixel iterator for img panel.
-ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray)> ray_func) {
+ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray, Point)> ray_func) {
   int i = 0;
-  for (auto& pixel: img) { //foreach pixel in empty_img
+  for (int& pixel: img) { //foreach pixel in empty_img
     //using to_2d function to get x,y camera coordinates
-    auto cam_xy = to_2d(i);
+    std::array<int, 2> cam_xy = to_2d(i);
 
     //construct Ray
     Ray ray = ray_construction(cam_xy[0], cam_xy[1]);
-    pixel = ray_func(ray);
+
+    //get shading value using the passed-in functor
+    pixel = ray_func(ray, LRP);
     i++;
   }
   return img;
@@ -59,15 +61,16 @@ ImagePanel init_img_panel(ImagePanel img) {
   return img;
 }
 
-//translate ray equation to an 0~255 shading value
-int ray_tracing(Ray ray) {
+//translate ray equation to an shading value
+int ray_tracing(Ray ray, Point LRP) {
   Intersection p = ray_objects_intersection(ray);
-  //std::cout<<"Intersection: "<<p.intersection[0]<<","<<p.intersection[1]<<","<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
-  return shading(p); 
+  //std::cout<<"Intersection: x:"<<p.intersection[0]<<", y:"<<p.intersection[1]<<", z:"<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
+  return shading(p, LRP); 
 }
 
 //calculate the ray object intersection point
 Intersection ray_objects_intersection(Ray ray) {
+  //this is hard-coded and ugly. should use a passed-in list structure instead in project
   auto sphere_hit = ray_sphere_intersection(ray, obj1);
   auto polygon_hit = ray_polygon_intersection(ray, obj2);
   if (sphere_hit.kd < 0 && polygon_hit.kd < 0) {
@@ -173,12 +176,22 @@ Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
 }
 
 //calculate shading value from 0~255 accordingly to intersection info
-int shading(Intersection p) {
+int shading(Intersection p, Point LRP) {
+  //when p.kd < 0, then it is null. let us give null value a black color for now
   if (p.kd < 0) {
-    return -1;
+    return 0;
   }
 
-  return 255;
+  //calculate the light vector
+  Vector light = { p.normal[0] - LRP[0],
+                   p.normal[1] - LRP[1],
+                   p.normal[2] - LRP[2] };
+
+  //normalize light vector;
+  light = normalize(light);
+
+  //calculate shading value
+  return Ip*p.kd*dot_product(p.normal, light);
 }
 
 //==========helper functions==========
@@ -209,19 +222,13 @@ bool in_poly4(Point p, POLY4 obj) {
   counter = count_intersection(obj2d.v2, obj2d.v3, counter);
   counter = count_intersection(obj2d.v3, obj2d.v4, counter);
   counter = count_intersection(obj2d.v4, obj2d.v1, counter);
-  if (!( counter[0] % 2 == 0 || 
-       counter[1] % 2 == 0 ||
-       counter[2] % 2 == 0 ||
-       counter[3] % 2 == 0 )) {
-      std::cout<<"v1: u:"<<obj2d.v1[0]<<" v:"<<obj2d.v1[1]<<std::endl;
-      std::cout<<"v2: u:"<<obj2d.v2[0]<<" v:"<<obj2d.v2[1]<<std::endl;
-      std::cout<<"v3: u:"<<obj2d.v3[0]<<" v:"<<obj2d.v3[1]<<std::endl;
-      std::cout<<"v4: u:"<<obj2d.v4[0]<<" v:"<<obj2d.v4[1]<<std::endl;
-      std::cout<<"p: u:"<<obj2d.p[0]<<" v:"<<obj2d.p[1]<<std::endl;
-      std::cout<<"count: "<<counter[0]<<", "<<counter[1]<<", "<<counter[2]<<", "<<counter[3]<<std::endl;
-  }
 
-  return true;
+  //std::cout<<"count: "<<counter[0]<<", "<<counter[1]<<", "<<counter[2]<<", "<<counter[3]<<std::endl;
+
+  if (counter[0] %2 != 0 && counter[1] %2 != 0 && counter[2] %2 != 0 && counter[3] %2 != 0)
+    return true;
+  else
+    return false;
 }
 
 //count intersections of edge v1-v2 with u and v axises
@@ -338,8 +345,29 @@ Four_counter count_intersection(Point2D v1, Point2D v2, Four_counter counter) {
 
 //check if third point is inside the bounding box from point 1 and 2
 bool inside_bounding(Point2D v1, Point2D v2, Point2D p) {
+  double u_max, u_min, v_max, v_min;
 
-  return true;
+  if (v1[0] >= v2[0]) {
+    u_max = v1[0];
+    u_min = v1[0];
+  } else {
+    u_max = v2[0];
+    u_min = v2[0];
+  }
+
+  if (v1[1] >= v2[1]) {
+    v_max = v1[1];
+    v_min = v1[1];
+  } else {
+    v_max = v2[1];
+    v_min = v2[1];
+  }
+
+  if ( (p[0] > u_min) && (p[0] < u_max) && 
+       (p[1] > v_min) && (p[1] < v_max) )
+    return true;
+  else
+    return false;
 }
 
 //make 2D polygon from 3D polygon
