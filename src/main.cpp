@@ -27,8 +27,11 @@ double ymax = 0.0175;
 
 
 /* definition of the camera parameters */
-Point VRP = {1.0, 2.0, 3.5};
-Vector VPN = {0.0, -1.0, -2.5};
+//Point VRP = {1.0, 2.0, 3.5};
+//Vector VPN = {0.0, -1.0, -2.5};
+//Vector VUP = {0.0, 1.0, 0.0};
+Point VRP = {1.0, 1.0, 4.5};
+Vector VPN = {0.0, 0.0, -1.0};
 Vector VUP = {0.0, 1.0, 0.0};
 
 double focal = 0.05;	/* focal length simulating 50 mm lens */
@@ -132,7 +135,10 @@ int main () {
   ImagePanel img;
   img = init_img_panel(img);
   img = foreach_pixel_exec(img, ray_tracing);
-  print_img_panel(img);
+  //print_img_panel(img);
+
+  //save result to binary file
+  save_to_file(img);
 
   return 0;
 }

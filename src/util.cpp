@@ -179,7 +179,7 @@ Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
 int shading(Intersection p, Point LRP) {
   //when p.kd < 0, then it is null. let us give null value a black color for now
   if (p.kd < 0) {
-    return 0;
+    return -255;
   }
 
   //calculate the light vector
@@ -195,6 +195,16 @@ int shading(Intersection p, Point LRP) {
 }
 
 //==========helper functions==========
+
+//save image panel to binary file
+void save_to_file(ImagePanel img) {
+  FILE * pFile;
+  pFile = fopen ( "output.raw" , "wb" );
+  std::cout<<"img size written to output.raw: "<<img.size()<<std::endl;
+  fwrite (img.data() , sizeof(int), img.size() , pFile );
+  fclose (pFile);
+  return;
+}
 
 //get the D of Ax+By+Cz+D=0 from POLY4
 double get_D_poly4(POLY4 obj) {
@@ -571,6 +581,26 @@ void print_img_panel(ImagePanel img) {
   for (auto& pixel : img) {
     std::cout<<pixel<<", ";
   }
+
+  /* ascii art
+  for (int i = 0; i<IMG_Y; i++) {
+    for (int j = 0; j<IMG_X; j++) {
+      if ( img[i*IMG_X+j] > 100 ) {
+        std::cout<<"8";
+      } else if ( img[i*IMG_X+j] > 0 ) {
+        std::cout<<"5";
+      } else if ( img[i*IMG_X+j] > -100 ) {
+        std::cout<<"0";
+      } else if ( img[i*IMG_X+j] > -200 ) {
+        std::cout<<"1";
+      } else {
+        std::cout<<" ";
+      }
+    }
+    std::cout<<std::endl;
+  }
+  */
+
   std::cout<<std::endl<<"Array size: "<<img.size()<<std::endl;
 }
 

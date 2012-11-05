@@ -13,6 +13,7 @@
 #include <functional>
 #include <iostream>
 #include <iomanip>
+#include <stdio.h>
 
 //types
 typedef std::array<int, IMG_LEN> ImagePanel;
@@ -91,6 +92,7 @@ double get_length(Vector);
 Vector cross_product(Vector, Vector);
 double dot_product(Vector, Vector);
 Vector normalize(Vector);
+void save_to_file(ImagePanel);
 
 //global vars
 extern Matrix Mwc;
