@@ -65,6 +65,7 @@ Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);
 
 //helper functions
+bool inside_bounding(Point2D, Point2D, Point2D);
 Four_counter count_intersection(Point2D, Point2D, Four_counter);
 int find_max(double, double, double);
 double get_D_poly4(POLY4);

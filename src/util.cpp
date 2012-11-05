@@ -206,58 +206,140 @@ bool in_poly4(Point p, POLY4 obj) {
   //count intersections with v=0 (u>0) (u<0) and u=0 (v>0) (v<0)
   Four_counter counter = {0,0,0,0};
   counter = count_intersection(obj2d.v1, obj2d.v2, counter);
-  //counter = count_intersection(obj2d.v2, obj2d.v3, counter);
-  //counter = count_intersection(obj2d.v3, obj2d.v4, counter);
-  //counter = count_intersection(obj2d.v4, obj2d.v1, counter);
-  std::cout<<"count: "<<counter[0]<<", "<<counter[1]<<", "<<counter[2]<<", "<<counter[3]<<std::endl;
+  counter = count_intersection(obj2d.v2, obj2d.v3, counter);
+  counter = count_intersection(obj2d.v3, obj2d.v4, counter);
+  counter = count_intersection(obj2d.v4, obj2d.v1, counter);
+  if (!( counter[0] % 2 == 0 || 
+       counter[1] % 2 == 0 ||
+       counter[2] % 2 == 0 ||
+       counter[3] % 2 == 0 )) {
+      std::cout<<"v1: u:"<<obj2d.v1[0]<<" v:"<<obj2d.v1[1]<<std::endl;
+      std::cout<<"v2: u:"<<obj2d.v2[0]<<" v:"<<obj2d.v2[1]<<std::endl;
+      std::cout<<"v3: u:"<<obj2d.v3[0]<<" v:"<<obj2d.v3[1]<<std::endl;
+      std::cout<<"v4: u:"<<obj2d.v4[0]<<" v:"<<obj2d.v4[1]<<std::endl;
+      std::cout<<"p: u:"<<obj2d.p[0]<<" v:"<<obj2d.p[1]<<std::endl;
+      std::cout<<"count: "<<counter[0]<<", "<<counter[1]<<", "<<counter[2]<<", "<<counter[3]<<std::endl;
+  }
 
   return true;
 }
 
-//count intersection of edge v1-v2 with u and v axises
+//count intersections of edge v1-v2 with u and v axises
 Four_counter count_intersection(Point2D v1, Point2D v2, Four_counter counter) {
   int u_plus_count = counter[0];
   int u_minus_count = counter[1];
   int v_plus_count = counter[2];
   int v_minus_count = counter[3];
 
-  //if v1 on u or v
-  if (v1[0]==0 && v1[1]>0) { //if v1 is on v_plus
-    v_plus_count+=2;
-  } else if (v1[0]==0 && v1[1]<0) {
-    v_minus_count+=2;
-  } else if (v1[1]==0 && v1[0]>0) {
-    u_plus_count+=2;
-  } else if (v1[1]==0 && v1[0]<0) {
-    u_minus_count+=2;
-  }
-
-  //if v2 on u or v
-  if (v2[0]==0 && v2[1]>0) { //if v2 is on v_plus
-    v_plus_count+=2;
-  } else if (v2[0]==0 && v2[1]<0) {
-    v_minus_count+=2;
-  } else if (v2[1]==0 && v2[0]>0) {
-    u_plus_count+=2;
-  } else if (v2[1]==0 && v2[0]<0) {
-    u_minus_count+=2;
-  }
-
-  if (v1[0]*v2[0] < 0) { //if v1 v2 are at different sides of v axis
-    if (fabs(v1[1] - v2[1]) > 0 ) { //if v1-v2 intersects at v_plus
-      v_plus_count++;
-    } else {
-      v_minus_count++;
+  //if v2[1]-v1[1] is 0
+  if (v2[1]-v1[1] == 0) {
+    /*           
+             |
+             |v1--v2
+        -----|---->
+             |
+             |
+    */
+    if (v2[0]*v1[0] > 0) {
+      return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
     }
-  } else if (v1[1]*v2[1] < 0) { //if v1 v2 are at differnt sides of x axis
-    if (fabs(v1[0] - v2[0]) > 0 ) { //if v1-v2 intersects at u_plus
-      u_plus_count++;
+    /*           
+             |
+         v1--|--v2
+        -----|---->
+             |
+             |
+    */
+    if (v2[0]*v1[0] < 0) {
+      if (v1[1] >= 0) {
+        v_plus_count++;
+        return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+      } else {
+        v_minus_count++;
+        return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+      }
+    }
+  }
+
+  //if v2[0]-v1[0] is 0
+  if (v2[0]-v1[0] == 0) {
+    /*           
+         v1 |
+         |  |
+         v2 |
+        ----|--->
+            |
+            |
+    */
+    if (v2[1]*v1[1] > 0) {
+      return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+    }
+    /*           
+         v1 |
+         |  |
+        -|--|--->
+         |  |
+         v2 |
+    */
+    if (v2[1]*v1[1] < 0) {
+      if (v1[0] >= 0) {
+        u_plus_count++;
+        return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+      } else {
+        u_minus_count++;
+        return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+      }
+    }
+  }
+
+  //first calcualte the slope m = (y2 − y1)/(x2 − x1)
+  double m = (v2[1] - v1[1]) / (v2[0] - v1[0]);
+
+  //when v = 0, u = -y1/m + x1
+  /*           
+       v1     |
+        \     |
+      ---*----|--->
+          \   |
+           v2 |
+  */
+  double u = - v1[1]/m + v1[0];
+  Point2D intersection1 = {u, 0};
+  if (inside_bounding(v1, v2, intersection1)) {
+    if (u>=0) {
+      return {u_plus_count+1, u_minus_count, v_plus_count, v_minus_count};
     } else {
-      u_minus_count++;
+      return {u_plus_count, u_minus_count+1, v_plus_count, v_minus_count};
+    }
+  }
+
+  //when u = 0, v = -x1*m + y1
+  /*           
+         |
+     ----|--->
+       v1|
+        \|
+         *
+         |\
+         | v2  
+  */
+  double v = - v1[0]*m + v1[1];
+  Point2D intersection2 = {0, v};
+  if (inside_bounding(v1, v2, intersection2)) {
+    if (v>=0) {
+      return {u_plus_count, u_minus_count, v_plus_count+1, v_minus_count};
+    } else {
+      return {u_plus_count, u_minus_count, v_plus_count, v_minus_count+1};
     }
   }
 
   return {u_plus_count, u_minus_count, v_plus_count, v_minus_count};
+}
+
+//check if third point is inside the bounding box from point 1 and 2
+bool inside_bounding(Point2D v1, Point2D v2, Point2D p) {
+
+  return true;
 }
 
 //make 2D polygon from 3D polygon
