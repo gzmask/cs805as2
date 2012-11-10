@@ -16,7 +16,7 @@
 #include <stdio.h>
 
 //types
-typedef std::array<int, IMG_LEN> ImagePanel;
+typedef std::array<unsigned char, IMG_LEN> ImagePanel;
 typedef std::array<double, 3> Point;
 typedef std::array<double, 2> Point2D;
 typedef std::array<double, 3> Vector;
@@ -56,11 +56,11 @@ typedef struct {
 
 //functions
 POLY4_2D flatten(POLY4, Point);
-ImagePanel foreach_pixel_exec(ImagePanel, std::function<int(Ray, Point)>);
+ImagePanel foreach_pixel_exec(ImagePanel, std::function<unsigned char(Ray, Point)>);
 ImagePanel init_img_panel(ImagePanel);
-int ray_tracing(Ray, Point);
+unsigned char ray_tracing(Ray, Point);
 Intersection ray_objects_intersection(Ray);
-int shading(Intersection, Point);
+unsigned char shading(Intersection, Point);
 Intersection ray_sphere_intersection(Ray, SPHERE);
 Intersection ray_polygon_intersection(Ray, POLY4);
 Ray ray_construction(int, int);

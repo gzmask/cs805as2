@@ -2,9 +2,9 @@
 #include <cmath>
 
 //pixel iterator for img panel.
-ImagePanel foreach_pixel_exec(ImagePanel img, std::function<int(Ray, Point)> ray_func) {
+ImagePanel foreach_pixel_exec(ImagePanel img, std::function<unsigned char(Ray, Point)> ray_func) {
   int i = 0;
-  for (int& pixel: img) { //foreach pixel in empty_img
+  for (unsigned char& pixel: img) { //foreach pixel in empty_img
     //using to_2d function to get x,y camera coordinates
     std::array<int, 2> cam_xy = to_2d(i);
 
@@ -62,7 +62,7 @@ ImagePanel init_img_panel(ImagePanel img) {
 }
 
 //translate ray equation to an shading value
-int ray_tracing(Ray ray, Point LRP) {
+unsigned char ray_tracing(Ray ray, Point LRP) {
   Intersection p = ray_objects_intersection(ray);
   //std::cout<<"Intersection: x:"<<p.intersection[0]<<", y:"<<p.intersection[1]<<", z:"<<p.intersection[2]<<"kd: "<<p.kd<<std::endl;
   return shading(p, LRP); 
@@ -176,22 +176,28 @@ Intersection ray_polygon_intersection(Ray ray, POLY4 obj) {
 }
 
 //calculate shading value from 0~255 accordingly to intersection info
-int shading(Intersection p, Point LRP) {
+unsigned char shading(Intersection p, Point LRP) {
   //when p.kd < 0, then it is null. let us give null value a black color for now
   if (p.kd < 0) {
-    return -255;
+    return 0;
   }
 
   //calculate the light vector
-  Vector light = { p.normal[0] - LRP[0],
-                   p.normal[1] - LRP[1],
-                   p.normal[2] - LRP[2] };
+  Vector light = { LRP[0] - p.intersection[0],
+                   LRP[1] - p.intersection[1],
+                   LRP[2] - p.intersection[2] };
 
   //normalize light vector;
   light = normalize(light);
 
   //calculate shading value
-  return Ip*p.kd*dot_product(p.normal, light);
+  int shading = (int)Ip*p.kd*dot_product(p.normal, light);
+  if (shading < 0) // the light is not reaching the surface but to the backside
+    return 0;
+  else if (shading > 255) // ensure the shading value is within the bounds
+    return 255;
+  else
+    return (unsigned char)shading;
 }
 
 //==========helper functions==========
